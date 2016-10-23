@@ -1,7 +1,12 @@
 import os
-file_o=open("prep_c","w+")
 
+os.system("rm *.out")
 os.system("rm *.csv")
+os.system("rm prep_c")
+
+temp_name = "prep_c"
+file_o=open(temp_name,"w+")
+
 for i in range(1,11):
 	fs=open("logfile%d" % i, "r")
 	for line in fs:
@@ -20,4 +25,8 @@ percentile=75
 
 
 os.system("gcc proc.c")
-os.system("./a.out %d" % percentile)
+os.system("./a.out '%s' '%d'" % (temp_name, percentile))
+
+os.system("rm *.out")
+os.system("rm prep_c")
+#os.system("rm logfile*")

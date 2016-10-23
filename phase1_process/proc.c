@@ -20,6 +20,7 @@
 //functions for memory management. 
 int stralloc(char** sp);
 int strdestroy(char** sp);
+int err_clean(int status, char** sp, char* sp1, FILE* sp2, FILE* sp3);
 
 int main(int argc, char** argv) {
 	// Variables declaration
@@ -34,18 +35,23 @@ int main(int argc, char** argv) {
 	intCount_1 = 0;
 	intCount_2 = 0;
 	strArray = (char**)malloc(3*sizeof(char*));
-	stralloc(strArray);
+	if(stralloc(strArray)) {
+		printf("Memory Allocation Failure.\n");
+		err_clean(-1, strArray, filename, input, output);
+		return -1;
+	}
 	char header[] = "Throughput,Latency,75th\n"; // String constant
 	char ed[] = "percentile.csv";
 	filename = (char*)malloc(sizeof(char)*30);
 
 	// File operations
-	strcat(filename, argv[1]);
+	strcat(filename, argv[2]);
 	strcat(filename, ed);
-	input = fopen("prep_c","r+");
+	input = fopen(argv[1],"r");
 	output = fopen(filename,"w+");
 	if(!input||!output) {
 		printf("File reading error.\n");
+		err_clean(-2, strArray, filename, input, output);
 		return -1;
 	}
 	
@@ -69,7 +75,11 @@ int main(int argc, char** argv) {
 				// Various of ways to write file, this is considered as easiest one.
 				intCount_2 = 0;
 				strdestroy(strArray);
-				stralloc(strArray);
+				if(stralloc(strArray)) {
+					printf("Memory Allocation Failure.\n");
+					err_clean(-1, strArray, filename, input, output);
+				return -1;
+				}
 				}
 			}
 			default: continue;
@@ -90,6 +100,8 @@ int stralloc(char** sp) {
 	sp[0] = (char*)malloc(30*sizeof(char));
 	sp[1] = (char*)malloc(30*sizeof(char));
 	sp[2] = (char*)malloc(30*sizeof(char));
+	if(sp[0] == NULL || sp[1] == NULL || sp[2] == NULL)
+		return -1;
 	return 0;
 }
 
@@ -97,5 +109,17 @@ int strdestroy(char** sp) {
 	free(sp[0]);
 	free(sp[1]);
 	free(sp[2]);
+	return 0;
+}
+
+int err_clean(int status, char** sp, char* sp1, FILE* sp2, FILE* sp3) {
+	if(sp2)
+		fclose(sp2);
+	if(sp3)
+		fclose(sp3);
+	free(sp1);
+	if(status != -1)
+		strdestroy(sp);
+	free(sp);
 	return 0;
 }
